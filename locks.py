@@ -22,7 +22,7 @@ bathroom_limit = 5
 
 def man():
     person = Person('M')
-    
+
     while True:
         bath_lock.acquire()
         if not (bathroom and bathroom[0].sex == 'W' or len(bathroom) >= bathroom_limit):
@@ -41,7 +41,7 @@ def man():
 
 def woman():
     person = Person('W')
-    
+
     while True:
         bath_lock.acquire()
         if not (bathroom and bathroom[0].sex == 'M' or len(bathroom) >= bathroom_limit):

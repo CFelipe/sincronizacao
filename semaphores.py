@@ -18,53 +18,50 @@ class Person:
 
 bathroom_limit = 5
 bath_semaphore = BoundedSemaphore(bathroom_limit)
-men_condition = Condition()
-women_condition = Condition()
+empty = Condition()
 bathroom = []
 
 def man():
     person = Person('M')
 
-    with men_condition:
+    with empty:
         while bathroom and bathroom[0].sex == 'W':
-            men_condition.wait()
+            print("{} está esperando".format(person.name))
+            empty.wait()
 
-        bath_semaphore.acquire()
-        bathroom.append(person)
-        print([p.name for p in bathroom], "{} entrou".format(person.name), sep = " | ")
+    bath_semaphore.acquire()
+    bathroom.append(person)
+    print([p.name for p in bathroom], "{} entrou".format(person.name), sep = " | ")
 
     useBathroom()
 
-    with men_condition:
-        with women_condition:
-            bathroom.remove(person)
-            print([p.name for p in bathroom], "{} saiu".format(person.name), sep = " | ")
-            bath_semaphore.release()
-            if not bathroom:
-                men_condition.notify()
-                women_condition.notify()
+    bathroom.remove(person)
+    print([p.name for p in bathroom], "{} saiu".format(person.name), sep = " | ")
+    bath_semaphore.release()
+    if not bathroom:
+        with empty:
+            empty.notify_all()
 
 def woman():
     person = Person('W')
 
-    with women_condition:
+    with empty:
         while bathroom and bathroom[0].sex == 'M':
-            women_condition.wait()
+            print("{} está esperando".format(person.name))
+            empty.wait()
 
-        bath_semaphore.acquire()
-        bathroom.append(person)
-        print([p.name for p in bathroom], "{} entrou".format(person.name), sep = " | ")
+    bath_semaphore.acquire()
+    bathroom.append(person)
+    print([p.name for p in bathroom], "{} entrou".format(person.name), sep = " | ")
 
     useBathroom()
 
-    with women_condition:
-        with men_condition:
-            bathroom.remove(person)
-            print([p.name for p in bathroom], "{} saiu".format(person.name), sep = " | ")
-            bath_semaphore.release()
-            if not bathroom:
-                men_condition.notify()
-                women_condition.notify()
+    bathroom.remove(person)
+    print([p.name for p in bathroom], "{} saiu".format(person.name), sep = " | ")
+    bath_semaphore.release()
+    if not bathroom:
+        with empty:
+            empty.notify_all()
 
 if __name__ == "__main__":
     threads = []
