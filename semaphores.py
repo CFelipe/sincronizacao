@@ -3,31 +3,32 @@ import random
 from time import sleep
 from threading import Thread, BoundedSemaphore, Condition
 
-bathroom_limit = 5
-bath_semaphore = BoundedSemaphore(bathroom_limit)
-empty = Condition()
-bathroom = []
+class SemaphoreStrategy:
+    def __init__(self, limit = 5):
+        self.toilet_limit = limit
+        self.toilet_semaphore = BoundedSemaphore(self.toilet_limit)
+        self.empty = Condition()
+        self.toilet = Toilet(self.toilet_limit)
 
-def person():
-    person = Person()
+    def personThread(self):
+        person = Person()
 
-    with empty:
-        while bathroom and bathroom[0].gender != person.gender:
-            print("{} está esperando".format(person.name))
-            empty.wait()
+        with self.empty:
+            #while (not self.toilet.empty()) and self.toilet.getCurrentGender() != person.gender:
+            while (not self.toilet.empty()) and self.toilet.getCurrentGender() != person.gender:
+                print("{} está esperando".format(person.name))
+                self.empty.wait()
 
-    bath_semaphore.acquire()
-    bathroom.append(person)
-    print([p.name for p in bathroom], "{} entrou".format(person.name), sep = " | ")
+        self.toilet_semaphore.acquire()
+        self.toilet.enter(person)
 
-    useBathroom()
+        useToilet()
 
-    bathroom.remove(person)
-    print([p.name for p in bathroom], "{} saiu".format(person.name), sep = " | ")
-    bath_semaphore.release()
-    if not bathroom:
-        with empty:
-            empty.notify_all()
+        self.toilet.leave(person)
+        self.toilet_semaphore.release()
+        if self.toilet.empty():
+            with self.empty:
+                self.empty.notify_all()
 
 if __name__ == "__main__":
-    main(person)
+    main(SemaphoreStrategy)

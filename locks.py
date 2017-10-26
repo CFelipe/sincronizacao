@@ -3,28 +3,28 @@ import random
 from time import sleep
 from threading import Lock
 
-bathroom_limit = 5
-bath_lock = Lock()
-bathroom = []
+class LockStrategy:
+    def __init__(self, limit = 5):
+        self.toilet_limit = limit
+        self.toilet_lock = Lock()
+        self.toilet = Toilet(self.toilet_limit)
 
-def person():
-    person = Person()
+    def personThread(self):
+        person = Person()
 
-    while True:
-        bath_lock.acquire()
-        if not (bathroom and bathroom[0].gender != person.gender or len(bathroom) >= bathroom_limit):
-            bathroom.append(person)
-            print([p.name for p in bathroom], "{} entrou".format(person.name), sep = " | ")
-            bath_lock.release()
-            break
-        bath_lock.release()
+        while True:
+            self.toilet_lock.acquire()
+            if not (not self.toilet.empty() and self.toilet.getCurrentGender() != person.gender or self.toilet.counter >= self.toilet_limit):
+                self.toilet.enter(person)
+                self.toilet_lock.release()
+                break
+            self.toilet_lock.release()
 
-    useBathroom()
+        useToilet()
 
-    bath_lock.acquire()
-    bathroom.remove(person)
-    print([p.name for p in bathroom], "{} saiu".format(person.name), sep = " | ")
-    bath_lock.release()
+        self.toilet_lock.acquire()
+        self.toilet.leave(person)
+        self.toilet_lock.release()
 
 if __name__ == "__main__":
-    main(person)
+    main(LockStrategy)
