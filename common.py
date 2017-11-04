@@ -5,10 +5,8 @@ import random
 import argparse
 import csv
 
-person_counter = 0
-
-MAX_NAME_LENGTH = 7
 SCALE = 0.01
+MAX_NAME_LENGTH = 8
 EMPTYSTR = MAX_NAME_LENGTH * "_"
 
 names = {'W': deque(), 'M': deque()}
@@ -34,14 +32,19 @@ def useToilet():
 class Toilet:
     def __init__(self, limit):
         self.counter = 0
+        # EMPTYSTR é usado pra detectar que um espaço do
+        # banheiro está vazio.
         self.list = [EMPTYSTR] * limit
 
     def getCurrentGender(self):
+        """Sexo que está com posse do banheiro"""
+
         i = 0
         for p in self.list:
             i = i + 1
             if p != EMPTYSTR:
                 return p.gender
+        return None
 
     def enter(self, person):
         idx = self.list.index(EMPTYSTR) # índice do primeiro espaço vazio
@@ -60,11 +63,8 @@ class Toilet:
 
 class Person:
     def __init__(self):
-        global person_counter
         self.gender = 'M' if random.randint(0, 1) else 'W'
         self.name = getRandomName(self.gender)
-        self.id = person_counter
-        person_counter += 1
 
 def main(strategy_class):
     loadNames()
@@ -73,12 +73,11 @@ def main(strategy_class):
                         help='lotação do banheiro', default=5)
 
     args = parser.parse_args()
-    print(args.l)
 
-    strategy = strategy_class(args.l)
+    strategy = strategy_class(limit=args.l)
 
     threads = []
-    for _ in range(50):
+    for _ in range(100):
         threads.append(Thread(target=strategy.personThread))
 
     for thread in threads:

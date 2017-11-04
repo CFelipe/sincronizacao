@@ -4,7 +4,9 @@ from time import sleep
 from threading import Thread, BoundedSemaphore, Condition
 
 class SemaphoreStrategy:
-    def __init__(self, limit = 5):
+    """Resolve o problema usando um semáforo e uma variável de condição"""
+
+    def __init__(self, limit):
         self.toilet_limit = limit
         self.toilet_semaphore = BoundedSemaphore(self.toilet_limit)
         self.empty = Condition()
@@ -14,7 +16,6 @@ class SemaphoreStrategy:
         person = Person()
 
         with self.empty:
-            #while (not self.toilet.empty()) and self.toilet.getCurrentGender() != person.gender:
             while (not self.toilet.empty()) and self.toilet.getCurrentGender() != person.gender:
                 print("{} está esperando".format(person.name))
                 self.empty.wait()

@@ -1,0 +1,114 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[brazilian]{babel} % Hifenização e dicionário
+\usepackage[left=3.00cm, right=2.00cm, top=3.00cm, bottom=2.00cm]{geometry}
+\usepackage{enumitem} % Para itemsep etc
+\usepackage{longtable} % Dependência do longtabu
+\usepackage{tabu} % Para melhor criação de tabelas
+\usepackage{zi4} % Para fonte de códigos
+\usepackage{listings} % Para códigos
+\usepackage{lstautogobble} % Códigos indentados corretamente
+\usepackage{color} % Para coloração de códigos
+\usepackage{mathpazo} % Palatino
+\usepackage{parskip} % Linha em branco entre parágrafos em vez de recuo
+\usepackage{graphicx}
+\usepackage{verbatim} % Para comentários
+\usepackage{booktabs}
+\usepackage{amsmath} % bmod
+\usepackage[breaklinks]{hyperref}
+
+\DeclareGraphicsExtensions{.pdf,.png}
+
+\newcommand{\code}[1]{{\lstinline{#1}}}
+
+\usepackage{listings}
+\lstset{
+    autogobble,
+    columns=fullflexible,
+    showspaces=false,
+    showtabs=false,
+    breaklines=true,
+    showstringspaces=false,
+    breakatwhitespace=true,
+    escapeinside={(*@}{@*)},
+    basicstyle=\ttfamily\footnotesize,
+    frame=l,
+    framesep=12pt,
+    xleftmargin=12pt,
+    tabsize=4,
+    captionpos=b
+}
+
+\begin{document}
+\begin{center}
+    \textsc{Universidade Federal do Rio Grande do Norte} \\
+    \textsc{Departamento de Informática e Matemática Aplicada}
+\end{center}
+
+\bigskip
+
+\begin{tabular}{@{}ll@{}}
+    \emph{Disciplina:} & DIM0612 --- Programação Concorrente \\
+    \emph{Docente:}    & Everton Ranielly de Sousa Cavalcante \\
+    \emph{Discente:}   & Felipe Cortez de Sá \\
+\end{tabular}
+
+\bigskip
+
+\begin{center}
+\large Sincronização de um banheiro unissex virtual
+\end{center}
+
+\section{Introdução}
+Este relatório descreve a implementação de algoritmos para sincronização de
+\emph{threads} usando duas estratégias diferentes.
+
+\section{Modelo}
+As partes comuns às duas estratégias de sincronização estão no arquivo
+\code{common.py}.
+
+O banheiro é implementando pela classe \code{Toilet}, que possui internamente
+um contador \code{counter} responsável por guardar o número de pessoas usando o
+toalete e uma lista de tamanho fixo $ l $, sua capacidade máxima. O método
+\code{enter} recebe como parâmetro um objeto da classe \code{Person} e troca o
+primeiro espaço vago da lista pelo objeto. O método \code{leave} recebe como
+parâmetro uma pessoa a ser retirada do banheiro, atualizando a lista com um
+espaço vago onde a pessoa estava. Os espaços vagos são codificados como uma
+\emph{string} \code{EMPTYSTR}.
+
+Uma pessoa é representada como instância da classe \code{Person}, que possui um
+atributo \code{gender}, podendo assumir os valores de \emph{string} \code{'M'}
+ou \code{'F'}, determinados aleatoriamente na instanciação. Além disso, cada
+pessoa recebe um nome aleatório para visualização durante a execução do
+programa.
+
+A função \code{main} recebe como parâmetro uma classe que implementa o método
+\code{personThread}, responsável pela lógica de sincronização. Os arquivos
+\code{locks.py} e \code{semaphores.py} implementam as classes e chamam a função
+\code{main}. Assim, os programas funcionam independentemente, cada um com seu
+próprio ponto de entrada \code{main}. 
+
+Foi utilizada a biblioteca \code{argparse} para leitura de parâmetros de linha
+de comando. O único parâmetro lido é \code{l}, a capacidade do banheiro. Os
+programas podem ser executados através dos comandos \code{python3
+[semaphores|locks].py -l 5}.
+
+\section{\emph{Lock}}
+O \emph{lock} é adquirido por uma thread sempre ao ler o estado do banheiro. Se
+o banheiro estiver vazio ou tiver apenas pessoas do mesmo sexo e não estiver
+lotado, a pessoa entra no banheiro e libera o \emph{lock}. Caso contrário, a
+pessoa não entra e libera o \emph{lock}, repetindo as tentativas. Em outras
+palavras, o \emph{lock} apenas serve como uma maneira de limitar o acesso ao
+objeto \code{toilet}, transformando a leitura e escrita numa operação atômica.
+
+\section{Semáforo e variável de condição}
+Foi utilizada a classe \code{BoundedSemaphore} do Python, inicializada com
+limite determinado pelo usuário representando o número de pessoas que podem
+utilizar o banheiro simultaneamente. Para não permitir que pessoas do mesmo
+sexo entrem no banheiro, foi utilizada uma variável de condição \code{empty},
+que faz a \emph{thread} esperar se o banheiro estiver ocupado por pessoas do
+sexo oposto. Ao final da execução de uma \emph{thread}, as \emph{threads} em
+espera são notificadas através do método \code{notify_all} caso o banheiro
+fique vazio.
+
+\end{document}
