@@ -4,8 +4,6 @@ from time import sleep
 from threading import Lock
 
 class LockStrategy:
-    """Resolve o problema usando uma variável lock"""
-
     def __init__(self, limit):
         self.toilet_limit = limit
         self.toilet_lock = Lock()

@@ -37,8 +37,6 @@ class Toilet:
         self.list = [EMPTYSTR] * limit
 
     def getCurrentGender(self):
-        """Sexo que está com posse do banheiro"""
-
         i = 0
         for p in self.list:
             i = i + 1

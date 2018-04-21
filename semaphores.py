@@ -4,8 +4,6 @@ from time import sleep
 from threading import Thread, BoundedSemaphore, Condition
 
 class SemaphoreStrategy:
-    """Resolve o problema usando um semáforo e uma variável de condição"""
-
     def __init__(self, limit):
         self.toilet_limit = limit
         self.toilet_semaphore = BoundedSemaphore(self.toilet_limit)

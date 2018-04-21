@@ -84,9 +84,10 @@ programa.
 
 A função \code{main} recebe como parâmetro uma classe que implementa o método
 \code{personThread}, responsável pela lógica de sincronização. Os arquivos
-\code{locks.py} e \code{semaphores.py} implementam as classes e chamam a função
-\code{main}. Assim, os programas funcionam independentemente, cada um com seu
-próprio ponto de entrada \code{main}. 
+\code{locks.py} e \code{semaphores.py} implementam as classes de estratégia e
+chamam a função \code{main} passando-as como parâmetro. Assim, os programas
+funcionam independentemente, cada um com seu próprio ponto de entrada
+\code{main}.
 
 Foi utilizada a biblioteca \code{argparse} para leitura de parâmetros de linha
 de comando. O único parâmetro lido é \code{l}, a capacidade do banheiro. Os
@@ -97,18 +98,25 @@ programas podem ser executados através dos comandos \code{python3
 O \emph{lock} é adquirido por uma thread sempre ao ler o estado do banheiro. Se
 o banheiro estiver vazio ou tiver apenas pessoas do mesmo sexo e não estiver
 lotado, a pessoa entra no banheiro e libera o \emph{lock}. Caso contrário, a
-pessoa não entra e libera o \emph{lock}, repetindo as tentativas. Em outras
-palavras, o \emph{lock} apenas serve como uma maneira de limitar o acesso ao
-objeto \code{toilet}, transformando a leitura e escrita numa operação atômica.
+pessoa não entra e libera o \emph{lock}, repetindo as tentativas. Ao sair do
+banheiro chamando o método \code{leave}, o \emph{lock} é adquirido para alterar
+o estado da lista.  Ou seja, o \emph{lock} apenas serve como uma maneira de
+limitar o acesso ao objeto \code{toilet}, transformando a leitura e escrita no
+recurso compartilhado em uma operação atômica.
 
 \section{Semáforo e variável de condição}
 Foi utilizada a classe \code{BoundedSemaphore} do Python, inicializada com
 limite determinado pelo usuário representando o número de pessoas que podem
-utilizar o banheiro simultaneamente. Para não permitir que pessoas do mesmo
-sexo entrem no banheiro, foi utilizada uma variável de condição \code{empty},
-que faz a \emph{thread} esperar se o banheiro estiver ocupado por pessoas do
-sexo oposto. Ao final da execução de uma \emph{thread}, as \emph{threads} em
-espera são notificadas através do método \code{notify_all} caso o banheiro
-fique vazio.
+utilizar o banheiro simultaneamente. Foi utilizado um semáforo limitado
+(\emph{bounded}) apenas para garantir que o valor não excedesse o inicial,
+apesar de a \emph{thread} já fazer um teste condicional. Para não permitir que
+pessoas do mesmo sexo entrem no banheiro, foi utilizado um teste condicional
+além de uma variável de condição \code{empty}, que faz a \emph{thread} esperar
+até o próximo momento em que o banheiro estiver vazio. Ao entrar no banheiro, o
+valor do semáforo é diminuído, o que não impede que pessoas do mesmo sexo
+entrem no banheiro se o valor ainda for não-nulo. Ao sair, o valor do semáforo
+é incrementado, liberando um espaço. Ao final da execução de uma \emph{thread},
+as \emph{threads} em espera são notificadas através do método \code{notify_all}
+caso o banheiro fique vazio.
 
 \end{document}
